@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Josh-Archer/pushover-provider/internal/provider"
+	"github.com/Josh-Archer/terraform-provider-pushover/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 

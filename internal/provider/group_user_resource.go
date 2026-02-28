@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Josh-Archer/pushover-provider/internal/pushover"
+	"github.com/Josh-Archer/terraform-provider-pushover/internal/pushover"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"

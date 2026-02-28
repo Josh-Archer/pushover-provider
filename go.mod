@@ -1,4 +1,4 @@
-module github.com/Josh-Archer/pushover-provider
+module github.com/Josh-Archer/terraform-provider-pushover
 
 go 1.24.13
 

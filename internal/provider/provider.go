@@ -7,7 +7,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/Josh-Archer/pushover-provider/internal/pushover"
+	"github.com/Josh-Archer/terraform-provider-pushover/internal/pushover"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"

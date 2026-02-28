@@ -70,7 +70,7 @@ release:
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
   github:
     owner: Josh-Archer
-    name: pushover-provider
+    name: terraform-provider-pushover
   draft: false
   prerelease: auto
 

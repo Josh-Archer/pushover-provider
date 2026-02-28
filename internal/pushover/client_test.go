@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Josh-Archer/pushover-provider/internal/pushover"
+	"github.com/Josh-Archer/terraform-provider-pushover/internal/pushover"
 )
 
 // successResponse returns a minimal Pushover success JSON response body.

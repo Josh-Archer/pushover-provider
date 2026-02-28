@@ -1,6 +1,6 @@
 # Terraform / OpenTofu Provider for Pushover
 
-[![Tests](https://github.com/Josh-Archer/pushover-provider/actions/workflows/test.yml/badge.svg)](https://github.com/Josh-Archer/pushover-provider/actions/workflows/test.yml)
+[![Tests](https://github.com/Josh-Archer/terraform-provider-pushover/actions/workflows/test.yml/badge.svg)](https://github.com/Josh-Archer/terraform-provider-pushover/actions/workflows/test.yml)
 
 The Pushover provider lets you send push notifications and manage delivery groups through [Pushover](https://pushover.net) directly from Terraform or OpenTofu.
 

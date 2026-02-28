@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Josh-Archer/pushover-provider/internal/pushover"
+	"github.com/Josh-Archer/terraform-provider-pushover/internal/pushover"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
