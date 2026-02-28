@@ -1,6 +1,7 @@
 # GoReleaser configuration for the Pushover Terraform provider.
 # See https://goreleaser.com for documentation.
 version: 2
+project_name: terraform-provider-pushover
 
 before:
   hooks:
@@ -40,10 +41,14 @@ builds:
     binary: "{{ .ProjectName }}_v{{ .Version }}"
 
 archives:
-  - format: zip
+  - formats:
+      - zip
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
+  extra_files:
+    - glob: "terraform-registry-manifest.json"
+      name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
   name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
   algorithm: sha256
 
@@ -59,6 +64,9 @@ signs:
       - "${artifact}"
 
 release:
+  extra_files:
+    - glob: "terraform-registry-manifest.json"
+      name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
   github:
     owner: Josh-Archer
     name: pushover-provider

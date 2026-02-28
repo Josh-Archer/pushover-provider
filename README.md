@@ -211,6 +211,13 @@ goreleaser build --snapshot --clean
 
 ## Publishing
 
-Releases are published automatically by the `release.yml` GitHub Actions workflow when a tag matching `v*` is pushed. You can also run the workflow manually (`workflow_dispatch`) to publish from the repository's latest tag (useful for release-pipeline validation). Binaries are signed when the `GPG_PRIVATE_KEY` repository secret is available.
+Releases are published automatically by the `release.yml` GitHub Actions workflow when a tag matching `v*` is pushed. You can also run the workflow manually (`workflow_dispatch`) by providing a specific tag via `release_tag` (for example `v0.0.1`).
+
+The release assets are generated in Terraform/OpenTofu registry-compatible format (including `terraform-registry-manifest.json`, checksums, and detached checksum signature).
+
+Required GitHub Actions secrets:
+
+- `GPG_PRIVATE_KEY`: ASCII-armored private key used to sign checksum files.
+- `PASSPHRASE`: Passphrase for `GPG_PRIVATE_KEY` (`GPG_PASSPHRASE` is also supported for backward compatibility).
 
 See [`.github/workflows/release.yml`](.github/workflows/release.yml) for the full workflow.

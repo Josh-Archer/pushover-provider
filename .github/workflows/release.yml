@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag to release (for example v0.0.1)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -19,16 +24,20 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Checkout latest tag for manual run
+      - name: Checkout requested tag for manual run
         if: github.event_name == 'workflow_dispatch'
         run: |
-          latest_tag="$(git describe --tags --abbrev=0)"
-          if [ -z "$latest_tag" ]; then
-            echo "No tags found in repository."
+          release_tag="${{ github.event.inputs.release_tag }}"
+          if [ -z "$release_tag" ]; then
+            echo "workflow_dispatch input release_tag is required."
             exit 1
           fi
-          echo "Manually triggered release from tag: $latest_tag"
-          git checkout -b "manual-release-${GITHUB_RUN_ID}" "$latest_tag"
+          if ! git rev-parse "$release_tag" >/dev/null 2>&1; then
+            echo "Tag '$release_tag' does not exist in this repository."
+            exit 1
+          fi
+          echo "Manually triggered release from tag: $release_tag"
+          git checkout -b "manual-release-${GITHUB_RUN_ID}" "$release_tag"
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -36,33 +45,33 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Set GoReleaser args
-        id: goreleaser_args
+      - name: Validate signing secrets
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          args="release --clean"
           if [ -z "$GPG_PRIVATE_KEY" ]; then
-            args="$args --skip=sign"
-            echo "has_gpg=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_gpg=true" >> "$GITHUB_OUTPUT"
+            echo "Missing required secret: GPG_PRIVATE_KEY"
+            exit 1
           fi
-          echo "args=$args" >> "$GITHUB_OUTPUT"
+          if [ -z "$PASSPHRASE" ] && [ -z "$GPG_PASSPHRASE" ]; then
+            echo "Missing required secret: PASSPHRASE (or legacy GPG_PASSPHRASE)"
+            exit 1
+          fi
 
       - name: Import GPG key
         id: import_gpg
-        if: steps.goreleaser_args.outputs.has_gpg == 'true'
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase:       ${{ secrets.GPG_PASSPHRASE }}
+          passphrase: ${{ secrets.PASSPHRASE != '' && secrets.PASSPHRASE || secrets.GPG_PASSPHRASE }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: ${{ steps.goreleaser_args.outputs.args }}
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_FINGERPRINT: ${{ steps.goreleaser_args.outputs.has_gpg == 'true' && steps.import_gpg.outputs.fingerprint || '' }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
