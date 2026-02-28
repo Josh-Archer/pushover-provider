@@ -37,7 +37,7 @@ jobs:
             exit 1
           fi
           echo "Manually triggered release from tag: $release_tag"
-          git checkout -b "manual-release-${GITHUB_RUN_ID}" "$release_tag"
+          git checkout --detach "$release_tag"
 
       - name: Set up Go
         uses: actions/setup-go@v5
