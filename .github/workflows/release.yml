@@ -22,13 +22,13 @@ jobs:
       - name: Checkout latest tag for manual run
         if: github.event_name == 'workflow_dispatch'
         run: |
-          latest_tag="$(git tag --sort=-v:refname | head -n 1)"
+          latest_tag="$(git describe --tags --abbrev=0)"
           if [ -z "$latest_tag" ]; then
             echo "No tags found in repository."
             exit 1
           fi
           echo "Manually triggered release from tag: $latest_tag"
-          git checkout "$latest_tag"
+          git checkout -b "manual-release-${GITHUB_RUN_ID}" "$latest_tag"
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -36,24 +36,27 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Set GoReleaser args
+        id: goreleaser_args
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          args="release --clean"
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            args="$args --skip=sign"
+            echo "has_gpg=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_gpg=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
       - name: Import GPG key
         id: import_gpg
-        if: secrets.GPG_PRIVATE_KEY != ''
+        if: steps.goreleaser_args.outputs.has_gpg == 'true'
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase:       ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Set GoReleaser args
-        id: goreleaser_args
-        env:
-          HAS_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
-        run: |
-          args="release --clean"
-          if [ "$HAS_GPG_KEY" != "true" ]; then
-            args="$args --skip=sign"
-          fi
-          echo "args=$args" >> "$GITHUB_OUTPUT"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -62,4 +65,4 @@ jobs:
           args: ${{ steps.goreleaser_args.outputs.args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GPG_FINGERPRINT: ${{ steps.goreleaser_args.outputs.has_gpg == 'true' && steps.import_gpg.outputs.fingerprint || '' }}
