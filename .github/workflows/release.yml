@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,6 +17,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
+
+      - name: Checkout latest tag for manual run
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          latest_tag="$(git tag --sort=-v:refname | head -n 1)"
+          if [ -z "$latest_tag" ]; then
+            echo "No tags found in repository."
+            exit 1
+          fi
+          echo "Manually triggered release from tag: $latest_tag"
+          git checkout "$latest_tag"
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -25,16 +38,28 @@ jobs:
 
       - name: Import GPG key
         id: import_gpg
+        if: secrets.GPG_PRIVATE_KEY != ''
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase:       ${{ secrets.GPG_PASSPHRASE }}
 
+      - name: Set GoReleaser args
+        id: goreleaser_args
+        env:
+          HAS_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        run: |
+          args="release --clean"
+          if [ "$HAS_GPG_KEY" != "true" ]; then
+            args="$args --skip=sign"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --clean
+          args: ${{ steps.goreleaser_args.outputs.args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}

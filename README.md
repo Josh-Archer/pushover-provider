@@ -211,6 +211,6 @@ goreleaser build --snapshot --clean
 
 ## Publishing
 
-Releases are published automatically by the `release.yml` GitHub Actions workflow when a tag matching `v*` is pushed. Binaries are signed with the GPG key stored in the `GPG_PRIVATE_KEY` repository secret.
+Releases are published automatically by the `release.yml` GitHub Actions workflow when a tag matching `v*` is pushed. You can also run the workflow manually (`workflow_dispatch`) to publish from the repository's latest tag (useful for release-pipeline validation). Binaries are signed when the `GPG_PRIVATE_KEY` repository secret is available.
 
 See [`.github/workflows/release.yml`](.github/workflows/release.yml) for the full workflow.
